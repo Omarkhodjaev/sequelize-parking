@@ -11,4 +11,5 @@ export interface IUserRepository {
     id: number,
     updateDto: UpdateUserDto,
   ): Promise<[affectedCount: number, affectedRows: UserEntity[]]>;
+  findOneByPhone(phone: number): Promise<UserEntity | undefined>;
 }

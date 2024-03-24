@@ -4,44 +4,76 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRepository } from './user.repository';
 import { ResData } from 'src/lib/resData';
 import { UserEntity } from './entities/user.entity';
-import { UserPhoneAlreadyExist } from './exception/user.exception';
+import {
+  UserNotFoundException,
+  UserPhoneAlreadyExistExpception,
+} from './exception/user.exception';
+import { generateToken } from 'src/lib/jsonwebtoken';
+import { IRegisterData, IUserService } from './interfaces/user.service';
+import { hashed } from 'src/lib/bcrypt';
 
 @Injectable()
-export class UserService {
+export class UserService implements IUserService {
   constructor(private readonly userRepository: UserRepository) {}
-  async create(createUserDto: CreateUserDto): Promise<ResData<UserEntity>> {
-    const foundUser = await this.userRepository.findOneByPhone(
-      createUserDto.phone,
-    );
+  async create(createUserDto: CreateUserDto): Promise<ResData<IRegisterData>> {
+    const foundUser = await this.findByPhoneNumber(createUserDto.phone);
 
     if (foundUser) {
-      throw new UserPhoneAlreadyExist();
+      throw new UserPhoneAlreadyExistExpception();
     }
 
-    const user = await this.userRepository.create(createUserDto);
+    createUserDto.password = await hashed(createUserDto.password);
 
-    return new ResData('User is created', HttpStatus.CREATED, user);
+    const user = await this.userRepository.create(createUserDto);
+    const token = generateToken(user.id);
+
+    return new ResData<IRegisterData>('User is created', HttpStatus.CREATED, {
+      user,
+      token,
+    });
   }
 
-  async findAll() {
-    return `This action returns all user`;
+  async findByPhoneNumber(phone: number) {
+    const foundUser = await this.userRepository.findOneByPhone(phone);
+
+    return foundUser;
+  }
+
+  async findAll(): Promise<ResData<UserEntity[]>> {
+    const users = await this.userRepository.findAll();
+    return new ResData('All users found', HttpStatus.OK, users);
   }
 
   async findOne(id: number) {
-    const user = await this.userRepository.findOne(id);
+    const foundUser = await this.userRepository.findOne(id);
 
-    return user;
+    if (!foundUser) {
+      throw new UserNotFoundException();
+    }
+
+    return new ResData('User is found', HttpStatus.OK, foundUser);
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.userRepository.update(id, updateUserDto);
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<ResData<UserEntity[]>> {
+    await this.findOne(id);
+    const foundUser = await this.findByPhoneNumber(updateUserDto.phone);
 
-    return user;
+    if (foundUser) {
+      throw new UserPhoneAlreadyExistExpception();
+    }
+
+    const updatedUser = await this.userRepository.update(id, updateUserDto);
+
+    return new ResData('User is updated', HttpStatus.OK, updatedUser[1]);
   }
 
-  async remove(id: number) {
-    const user = await this.userRepository.delete(id);
+  async remove(id: number): Promise<ResData<UserEntity>> {
+    const { data: deletedUser } = await this.findOne(id);
+    await this.userRepository.delete(id);
 
-    return user;
+    return new ResData('User is deleted', HttpStatus.OK, deletedUser);
   }
 }

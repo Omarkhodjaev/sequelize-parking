@@ -15,3 +15,5 @@ export class ResData<TData> {
     this.error = error;
   }
 }
+
+
