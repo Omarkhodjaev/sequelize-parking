@@ -1,3 +1,4 @@
+import { Optional } from 'sequelize';
 import {
   BelongsToMany,
   Column,
@@ -12,8 +13,16 @@ import {
   ParkOwnersEntity,
 } from 'src/modules/park/entities/park.entity';
 
+export interface IUserAttribute extends Model {
+  id: number;
+  fullName: string;
+  password: string;
+  phone: number;
+}
+
+type OptionalIUserAttribute = Optional<IUserAttribute, 'id'>;
 @Table({ modelName: 'users' })
-export class UserEntity extends Model {
+export class UserEntity extends Model<IUserAttribute, OptionalIUserAttribute> {
   @Column({ field: 'full_name', allowNull: false, type: DataType.STRING })
   fullName: string;
 
