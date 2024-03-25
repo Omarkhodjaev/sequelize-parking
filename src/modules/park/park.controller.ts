@@ -14,7 +14,6 @@ import { CreateParkDto } from './dto/create-park.dto';
 import { UpdateParkDto } from './dto/update-park.dto';
 import { IParkService } from './interfaces/park.service';
 import { ApiTags } from '@nestjs/swagger';
-import { IUserService } from '../user/interfaces/user.service';
 
 @ApiTags('park')
 @Controller('park')
@@ -22,13 +21,10 @@ export class ParkController {
   constructor(
     @Inject('ParkService')
     private readonly parkService: IParkService,
-    @Inject('UserService')
-    private readonly userService: IUserService,
   ) {}
 
   @Post()
   async create(@Body() createParkDto: CreateParkDto) {
-    await this.userService.findOne(createParkDto.userId);
 
     return this.parkService.create(createParkDto);
   }
@@ -48,7 +44,6 @@ export class ParkController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateParkDto: UpdateParkDto,
   ) {
-    await this.userService.findOne(updateParkDto.userId);
 
     return this.parkService.update(id, updateParkDto);
   }

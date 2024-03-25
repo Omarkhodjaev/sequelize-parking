@@ -14,7 +14,6 @@ export class ParkRepository implements IParkRepository {
       name: dto.name,
       location: dto.location,
       empty_place_count: dto.emptyPlaceCount,
-      user_id: dto.userId,
     });
 
     return newPark;
