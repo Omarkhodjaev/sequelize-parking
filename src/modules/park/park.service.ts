@@ -5,6 +5,7 @@ import { IParkService } from './interfaces/park.service';
 import { ResData } from 'src/lib/resData';
 import { ParkEntity } from './entities/park.entity';
 import { IParkRepository } from './interfaces/park.repository';
+import { ParkNotFoundException } from './exception/park.exception';
 
 @Injectable()
 export class ParkService implements IParkService {
@@ -16,27 +17,44 @@ export class ParkService implements IParkService {
   async create(createParkDto: CreateParkDto): Promise<ResData<ParkEntity>> {
     const park = await this.parkRepository.create(createParkDto);
 
-    return new ResData('Park is created', HttpStatus.CREATED, park);
+    return new ResData<ParkEntity>(
+      'Park created successfully',
+      HttpStatus.OK,
+      park,
+    );
   }
 
   async findAll(): Promise<ResData<ParkEntity[]>> {
     const parks = await this.parkRepository.findAll();
-    throw new Error('Method not implemented.');
+    return new ResData('All parks found', HttpStatus.OK, parks);
   }
 
   async findOne(id: number): Promise<ResData<ParkEntity>> {
     const park = await this.parkRepository.findOne(id);
 
-    return new ResData('Park is found', HttpStatus.OK, park);
+    if (!park) {
+      throw new ParkNotFoundException();
+    }
+
+    return new ResData('park found', HttpStatus.OK, park);
   }
-  
-  update(
+
+  async update(
     id: number,
     updateParkDto: UpdateParkDto,
   ): Promise<ResData<ParkEntity[]>> {
-    throw new Error('Method not implemented.');
+    await this.findOne(id);
+
+    const park = await this.parkRepository.update(id, updateParkDto);
+
+    return new ResData('Park is updated', HttpStatus.OK, park[1]);
   }
-  remove(id: number): Promise<ResData<ParkEntity>> {
-    throw new Error('Method not implemented.');
+
+  async remove(id: number): Promise<ResData<ParkEntity>> {
+    const { data: park } = await this.findOne(id);
+
+    await this.parkRepository.delete(id);
+
+    return new ResData('Park is removed', HttpStatus.OK, park);
   }
 }

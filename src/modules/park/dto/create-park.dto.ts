@@ -14,7 +14,7 @@ export class CreateParkDto {
 
   @ApiProperty({ type: Number })
   @IsOptional()
-  @IsString()
+  @IsNumber()
   emptyPlaceCount: number;
 
   @ApiProperty({ type: Number })
