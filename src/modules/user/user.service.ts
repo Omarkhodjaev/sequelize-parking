@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRepository } from './user.repository';
@@ -11,10 +11,14 @@ import {
 import { generateToken } from 'src/lib/jsonwebtoken';
 import { IRegisterData, IUserService } from './interfaces/user.service';
 import { hashed } from 'src/lib/bcrypt';
+import { IUserRepository } from './interfaces/user.repository';
 
 @Injectable()
 export class UserService implements IUserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    @Inject('UserRepository')
+    private readonly userRepository: IUserRepository,
+  ) {}
   async create(createUserDto: CreateUserDto): Promise<ResData<IRegisterData>> {
     const foundUser = await this.findByPhoneNumber(createUserDto.phone);
 

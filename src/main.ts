@@ -4,7 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './lib/AllExceptionFilter';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { config } from './common/config';
-
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -16,6 +16,7 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
+  app.useGlobalPipes(new ValidationPipe());
   app.setGlobalPrefix('api');
 
   const options = new DocumentBuilder()

@@ -1,11 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Inject,
+} from '@nestjs/common';
 import { ParkService } from './park.service';
 import { CreateParkDto } from './dto/create-park.dto';
 import { UpdateParkDto } from './dto/update-park.dto';
+import { IParkService } from './interfaces/park.service';
 
 @Controller('park')
 export class ParkController {
-  constructor(private readonly parkService: ParkService) {}
+  constructor(
+    @Inject('ParkService')
+    private readonly parkService: IParkService,
+  ) {}
 
   @Post()
   create(@Body() createParkDto: CreateParkDto) {
